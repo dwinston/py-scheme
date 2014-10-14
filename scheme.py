@@ -59,11 +59,19 @@ def scheme_apply(procedure, args, env):
     if isinstance(procedure, PrimitiveProcedure):
         return apply_primitive(procedure, args, env)
     elif isinstance(procedure, LambdaProcedure):
-        "*** YOUR CODE HERE ***"
+        call_env = procedure.env.make_call_frame(procedure.formals, args)
+        return scheme_eval(procedure.body, call_env)
     elif isinstance(procedure, MuProcedure):
         "*** YOUR CODE HERE ***"
     else:
         raise SchemeError("Cannot call {0}".format(str(procedure)))
+
+def as_python_list(scheme_list):
+    result = []
+    while scheme_list is not nil:
+        result.append(scheme_list.first)
+        scheme_list = scheme_list.second
+    return result
 
 def apply_primitive(procedure, args, env):
     """Apply PrimitiveProcedure PROCEDURE to a Scheme list of ARGS in ENV.
@@ -74,7 +82,13 @@ def apply_primitive(procedure, args, env):
     >>> apply_primitive(plus, twos, env)
     4
     """
-    "*** YOUR CODE HERE ***"
+    args = as_python_list(args)
+    if procedure.use_env:
+        args.append(env)
+    try:
+        return procedure.fn(*args)
+    except TypeError as e:
+        raise SchemeError(str(e))
 
 ################
 # Environments #
@@ -97,8 +111,12 @@ class Frame:
 
     def lookup(self, symbol):
         """Return the value bound to SYMBOL.  Errors if SYMBOL is not found."""
-        "*** YOUR CODE HERE ***"
-        raise SchemeError("unknown identifier: {0}".format(str(symbol)))
+        if symbol in self.bindings:
+            return self.bindings[symbol]
+        elif self.parent is not None:
+            return self.parent.lookup(symbol)
+        else:
+            raise SchemeError("unknown identifier: {0}".format(str(symbol)))
 
 
     def global_frame(self):
@@ -120,7 +138,12 @@ class Frame:
         <{a: 1, b: 2, c: 3} -> <Global Frame>>
         """
         frame = Frame(self)
-        "*** YOUR CODE HERE ***"
+        while formals is not nil and vals is not nil:
+            frame.define(formals.first, vals.first)
+            formals, vals = formals.second, vals.second
+        if formals is not nil or vals is not nil:
+            raise SchemeError("number of arguments does not match number "
+                              "of formal parameters")
         return frame
 
     def define(self, sym, val):
@@ -184,7 +207,10 @@ def do_lambda_form(vals, env):
     check_form(vals, 2)
     formals = vals[0]
     check_formals(formals)
-    "*** YOUR CODE HERE ***"
+    body = vals.second
+    if body.second is nil:
+        return LambdaProcedure(formals, body.first, env)
+    return LambdaProcedure(formals, Pair("begin", body), env)
 
 def do_mu_form(vals):
     """Evaluate a mu form with parameters VALS."""
@@ -196,19 +222,26 @@ def do_mu_form(vals):
 def do_define_form(vals, env):
     """Evaluate a define form with parameters VALS in environment ENV."""
     check_form(vals, 2)
-    target = vals[0]
+    target = vals.first
     if scheme_symbolp(target):
         check_form(vals, 2, 2)
-        "*** YOUR CODE HERE ***"
+        env.define(target, scheme_eval(vals.second.first, env))
+        return target
     elif isinstance(target, Pair):
-        "*** YOUR CODE HERE ***"
+        name = target.first
+        if scheme_symbolp(name):
+            formals = target.second
+            env.define(name, do_lambda_form(Pair(formals, vals.second), env))
+            return name
+        else:
+            raise SchemeError("bad argument to define")
     else:
         raise SchemeError("bad argument to define")
 
 def do_quote_form(vals):
     """Evaluate a quote form with parameters VALS."""
     check_form(vals, 1, 1)
-    "*** YOUR CODE HERE ***"
+    return vals.first
 
 
 def do_let_form(vals, env):
@@ -279,7 +312,10 @@ def do_cond_form(vals, env):
 def do_begin_form(vals, env):
     """Evaluate begin form with parameters VALS in environment ENV."""
     check_form(vals, 1)
-    "*** YOUR CODE HERE ***"
+    while vals.second is not nil:
+        scheme_eval(vals.first, env)
+        vals = vals.second
+    return vals.first
 
 LOGIC_FORMS = {
         "and": do_and_form,
@@ -310,7 +346,14 @@ def check_formals(formals):
 
     >>> check_formals(read_line("(a b c)"))
     """
-    "*** YOUR CODE HERE ***"
+    encountered = {}
+    while formals is not nil:
+        if not scheme_symbolp(formals.first):
+            raise SchemeError("parameter list is not list of symbols")
+        if formals.first in encountered:
+            raise SchemeError("parameter list has repeated symbols")
+        encountered[formals.first] = True
+        formals = formals.second
 
 ##################
 # Tail Recursion #
