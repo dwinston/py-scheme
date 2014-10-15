@@ -282,7 +282,7 @@ def do_if_form(vals, env):
     If predicate is false and no alternative is given, return `okay`.
     """
     check_form(vals, 2, 3)
-    if scheme_true(vals[0]):
+    if scheme_true(scheme_eval(vals[0], env)):
         return vals[1]
     return vals[2] if vals.second.second is not nil else okay
 
