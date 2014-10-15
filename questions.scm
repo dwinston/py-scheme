@@ -64,12 +64,6 @@
 
 ; Problem 19
 
-(define (append list1 list2)
-  (cond
-   ((null? list1) list2)
-   ((null? list2) list1)
-   (else (cons (car list1) (append (cdr list1) list2)))))
-
 ;; A list of all ways to partition TOTAL, where  each partition must
 ;; be at most MAX-VALUE and there are at most MAX-PIECES partitions.
 (define (list-partitions total max-pieces max-value)
@@ -133,8 +127,11 @@
 ;; Takes a TREE of numbers and outputs a list of sums from following each
 ;; possible path from root to leaf.
 (define (tree-sums tree)
-  ; *** YOUR CODE HERE ***
-  nil)
+  (cond
+   ((null? (children tree)) (list (entry tree)))
+   (else
+    (map (lambda (tree-sum) (+ (entry tree) tree-sum))
+         (accumulate append nil (map tree-sums (children tree)))))))
 
 (tree-sums tree)
 ; expect (20 19 13 16 11)
