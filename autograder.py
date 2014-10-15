@@ -167,7 +167,7 @@ def run_tests(name, remote_index, autograder_files, version, **kwargs):
     if args.question:
         args.question = args.question.upper()
 
-    check_for_updates(remote_index, autograder_files, version)
+    # check_for_updates(remote_index, autograder_files, version)
     if args.version:
         exit(0)
     elif args.question in TESTS:
