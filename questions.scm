@@ -23,8 +23,12 @@
 ;; Merge two lists LIST1 and LIST2 according to COMP and return
 ;; the merged lists.
 (define (merge comp list1 list2)
-    ; *** YOUR CODE HERE ***
-    nil)
+  (cond ((null? list1) list2)
+        ((null? list2) list1)
+        ((comp (car list1) (car list2))
+         (cons (car list1) (merge comp (cdr list1) list2)))
+        (else
+         (cons (car list2) (merge comp list1 (cdr list2))))))
 
 (merge < '(1 5 7 9) '(4 8 10))
 ; expect (1 4 5 7 8 9 10)
@@ -60,11 +64,31 @@
 
 ; Problem 19
 
+(define (append list1 list2)
+  (cond
+   ((null? list1) list2)
+   ((null? list2) list1)
+   (else (cons (car list1) (append (cdr list1) list2)))))
+
 ;; A list of all ways to partition TOTAL, where  each partition must
 ;; be at most MAX-VALUE and there are at most MAX-PIECES partitions.
 (define (list-partitions total max-pieces max-value)
-  ; *** YOUR CODE HERE ***
-  nil)
+  (cond
+   ((= total 0) (cons nil nil)) ;; There is one way, which uses no pieces.
+   ((< (* max-pieces max-value) total) nil)
+   ((= max-pieces 1) (list (list total)))
+   ((= max-value 1)
+    (map (lambda (p) (cons 1 p))
+         (list-partitions (- total 1) (- max-pieces 1) 1)))
+   ((>= (- total max-value) 0)
+    (append
+     ;; All ways that include at least one max-value piece
+     (map (lambda (partition) (cons max-value partition))
+          (list-partitions (- total max-value) (- max-pieces 1) max-value))
+     ;; All ways that include no max-value piece
+     (list-partitions total max-pieces (- max-value 1))))
+   (else
+    (list-partitions total max-pieces (- max-value 1)))))
 
 ; Problem 19 tests rely on correct Problem 18.
 (sort-lists (list-partitions 5 2 4))
