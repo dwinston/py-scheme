@@ -269,9 +269,14 @@ def do_let_form(vals, env):
 #########################
 
 def do_if_form(vals, env):
-    """Evaluate if form with parameters VALS in environment ENV."""
+    """Evaluate if form with parameters VALS in environment ENV.
+
+    If predicate is false and no alternative is given, return `okay`.
+    """
     check_form(vals, 2, 3)
-    "*** YOUR CODE HERE ***"
+    if scheme_true(vals[0]):
+        return vals[1]
+    return vals[2] if vals.second.second is not nil else okay
 
 def do_and_form(vals, env):
     """Evaluate short-circuited and with parameters VALS in environment ENV."""
