@@ -139,7 +139,21 @@
 
 ; Problem 21 (optional)
 
+(define (repeat k fn)
+  (if (> k 0)
+      (begin (fn) (repeat (- k 1) fn))
+      nil))
+
+(define (tri fn)
+    (repeat 3 (lambda () (fn) (lt 120))))
+
+(define (leg d k)
+    (hax (/ d 2) (- k 1))
+    (next-hax d))
+
+(define (next-hax d)
+  (fd d) (lt 60) (fd d) (rt 60))
+
 ; Draw the hax image using turtle graphics.
 (define (hax d k)
-  ; *** YOUR CODE HERE ***
-  nil)
+  (tri (lambda () (if (= k 0) (next-hax d) (leg d k)))))
