@@ -320,7 +320,12 @@ def do_cond_form(vals, env):
         else:
             test = scheme_eval(clause.first, env)
         if scheme_true(test):
-            "*** YOUR CODE HERE ***"
+            if clause.second is nil:
+                return clause.first
+            elif clause.second.second is nil:
+                return clause[1]
+            else:
+                return do_begin_form(clause.second, env)
     return okay
 
 def do_begin_form(vals, env):
